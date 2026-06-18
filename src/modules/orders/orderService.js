@@ -25,9 +25,6 @@ const orderService = {
             if (!product) {
                 throw new AppError(`Produto ${item.productId} não existe mais`, 409, 'CONFLICT');
             }
-            if (product.stock < item.quantity) {
-                throw new AppError(`Estoque insuficiente para ${product.name}`, 409, 'OUT_OF_STOCK');
-            }
             if (product.status !== 'ACTIVE') {
                 throw new AppError(`Produto ${product.name} indisponível`, 409, 'CONFLICT');
             }
@@ -49,13 +46,16 @@ const orderService = {
             throw new AppError('Erro ao processar pedido ou estoque', 500, 'INTERNAL_SERVER_ERROR');
         }
 
-        // 4. Limpar Carrinho
-        // Como o redis remove item a item, seria bom ter um clearCart.
-        // Vou simular um clear setando vazio ou iterando.
-        // O ideal é implementar clear no cartService.
-        // Por hora, vou expirar a chave ou deletar.
+        // 4. Limpar Carrinho e Reservas definitivas
         const redisClient = require('../../config/redis');
         await redisClient.del(`cart:default:${userId}`);
+
+        // Remove as reservas atreladas sem devolver o estoque ao Redis
+        for (const item of validItems) {
+            const reserveKey = `cart:reserve:${userId}:${item.productId}`;
+            await redisClient.del(reserveKey);
+            await redisClient.zRem('cart:expirations', `${userId}:${item.productId}`);
+        }
 
         // 5. Emitir Evento (Simulado)
         logger.info(`Evento Emitido: order.created { orderId: ${order.id} }`);

@@ -10,7 +10,11 @@ const productService = {
         if (existing) {
             throw new AppError('SKU já existe', 409, 'CONFLICT');
         }
-        return await productRepository.create(data);
+        const newProduct = await productRepository.create(data);
+        if (newProduct.stock !== undefined) {
+            await redisClient.set(`stock:available:${newProduct.id}`, newProduct.stock);
+        }
+        return newProduct;
     },
 
     updateProduct: async (id, data) => {
@@ -22,12 +26,17 @@ const productService = {
             if (existing) throw new AppError('SKU já existe', 409, 'CONFLICT');
         }
 
-        return await productRepository.update(id, data);
+        const updatedProduct = await productRepository.update(id, data);
+        if (updatedProduct.stock !== undefined) {
+            await redisClient.set(`stock:available:${updatedProduct.id}`, updatedProduct.stock);
+        }
+        return updatedProduct;
     },
 
     deleteProduct: async (id) => {
         try {
             await productRepository.delete(id);
+            await redisClient.del(`stock:available:${id}`);
         } catch (e) {
             if (e.code === 'P2025') throw new AppError('Produto não encontrado', 404, 'RESOURCE_NOT_FOUND');
             throw e;
