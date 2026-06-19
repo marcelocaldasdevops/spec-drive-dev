@@ -46,3 +46,29 @@ Exemplo: `orderService.js` importa e chama diretamente o `cartService.js` e o `p
 - **Isolamento de Estado**: Funcionalidades como limpar carrinho não devem ser feitas deletando a chave do Redis diretamente no `orderService`, mas delegadas a uma função `clearCart` no `cartService`.
 - **Eventos de Domínio**: Evoluir os "logs de eventos" para um barramento de eventos real no RabbitMQ, de forma a desacoplar rotinas pós-compra e diminuir acoplamentos fortes em transações cruzadas.
 - **Cobertura de Testes**: Garantir testes unitários para a camada de Service antes de novas alterações complexas.
+
+## Testes e Qualidade
+
+O projeto conta com uma infraestrutura de testes automatizados em duas camadas:
+
+### Testes Unitários e de Integração (Jest + Supertest)
+- **Jest** (`v30`) é o test runner principal, configurado via `jest.config.js` com ambiente `node`.
+- **Supertest** (`v7`) realiza testes de integração HTTP diretamente na instância do Express, sem necessidade de abrir porta de rede.
+- Arquivos de teste ficam no diretório `/tests` (ex: `math.test.js`, `health.test.js`).
+- **Comando**: `npm test`
+
+### Testes E2E de API (Postman / Newman)
+- **Newman** (`v6`) executa coleções do Postman via linha de comando.
+- **newman-reporter-htmlextra** gera relatórios HTML visuais detalhados na pasta `/newman`.
+- A coleção (`postman/collection.json`) cobre os módulos: Health, Auth, Products, Categories, Cart, Orders e Users.
+- A API DEVE estar rodando na **porta 3001** antes da execução dos testes E2E.
+- **Comando**: `npm run test:api`
+
+### Ferramentas de Teste
+
+| Ferramenta | Tipo | Versão | Propósito |
+|---|---|---|---|
+| Jest | Dev | v30 | Test runner (unitários e integração) |
+| Supertest | Dev | v7 | Testes HTTP sem porta de rede |
+| Newman | Dev | v6 | Executor de coleções Postman via CLI |
+| newman-reporter-htmlextra | Dev | v1.23 | Geração de relatórios HTML |

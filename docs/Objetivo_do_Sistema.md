@@ -27,6 +27,7 @@ Fornecer um backend robusto, escalável e multi-tenant para operações de comé
 - Carrinho de Compras em memória.
 - Criação transacional de Pedidos (`Order` e `OrderItem`).
 - Integração de Status de Pagamento associado aos Pedidos (sem provedor definido por enquanto).
+- Testes automatizados com Jest (unitários/integração) e Newman/Postman (E2E de API), com geração de relatórios HTML.
 - Integração futura de serviços de Fretes e Logística.
 
 ## Visão de Produto
